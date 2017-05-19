@@ -1,7 +1,6 @@
 search([Goal,_ ], Solution, Goal, Path) :- reverse([Goal|Path],Solution).
 search(Expansions, Visited, Goal , Path) :- 
 	applyOperators(Expansions, Visited, Expanded),
-    %sort(CostExpanded, SortedExpanded),
     search(Expanded, Visited, Goal, Path).
 
 applyOperators([Ehead | Etail], Visited, NewExpansions) :- 
