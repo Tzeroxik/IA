@@ -1,3 +1,4 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Searcher %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 search([Goal,_ ], Solution, Goal, Path) :- reverse([Goal|Path],Solution).
 search(Expansions, Visited, Goal , Path) :- 
 	applyOperators(Expansions, Visited, Goal,Expanded),
@@ -10,8 +11,8 @@ applyOperators([Ehead | Etail], Visited,Goal, NewExpansions) :-
     down(Ehead, Eup,Goal, Visited, NewExpansions),
     \+equals(Etail, NewExpansions).
 
-%costFunction(Expanded, Goal, CostExpanded) - gives cost to new state.
-%insertOrdered(CurrState, ExpansionsList, OrderedExpansionsList) - inserts element in ordered position.
+%costFunction(Expanded, Goal, CostExpanded) - gives cost to new state. put in searcher section!
+%insertOrdered(CurrState, ExpansionsList, OrderedExpansionsList) - inserts element in ordered position. put in utils section!
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% OPERATORS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 right((X,Y): Numbers/CurrCost,Expansions,Goal, Visited, OrderedExpansions) :- 
