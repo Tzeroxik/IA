@@ -11,7 +11,7 @@ applyOperators([Ehead | Etail], Visited, NewExpansions) :-
     down(Ehead, Eup, Visited, NewExpansions),
     \+equals(Etail, NewExpansions).
 
-costFunction(Expanded, Goal, CostExpanded)
+%costFunction(Expanded, Goal, CostExpanded)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% OPERATORS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 right((X,Y): Numbers/_,Expansions, Visited, [(NX,Y):NewState/_|Expansions]) :- 
