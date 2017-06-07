@@ -22,8 +22,7 @@ manDist(X,Y, XGOAL, YGOAL, RES) :-
     abs(DX, AbsX),
     abs(DY, AbsY),
     RES is DX + DY + Cacc.
-
-costFunction(,[(X,Y)/C | T/])
+    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% OPERATORS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 right((X,Y): Numbers/CurrCost,Expansions,Goal, Visited, OrderedExpansions) :- 
     X < 3, 
