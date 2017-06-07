@@ -11,18 +11,25 @@ applyOperators([Ehead | Etail], Visited,Goal, NewExpansions) :-
     down(Ehead, Eup,Goal, Visited, NewExpansions),
     \+equals(Etail, NewExpansions).
 
-%costFunction(Expanded, Goal, CostExpanded) - gives cost to new state. put in searcher section!
+costFunction((X,Y):[]/ Cost, (Xpg,Ypg):[], Cacc ,NewCost) :- manDist(X, Y, Xpg, Ypg, C), NewCost is Cacc + C + Cost. 
+costFunction(CH:[_-(X-Y) | T]/ Cost, GH:[_-(Xg,Yg) | Tg], Cacc ,NewCost) :- 
+    manDist(X, Y, Xg, Yg, NCacc),
+    costFunction(CH: T /Cost, GH : Tg, NCacc, NewCost). 
 
-%insertOrdered(CurrState, ExpansionsList, OrderedExpansionsList) - inserts element in ordered position. put in utils section!
+manDist(X,Y, XGOAL, YGOAL, RES) :- 
+    DX is X - XGOAL,
+	DY is Y - YGOAL,
+    abs(DX, AbsX),
+    abs(DY, AbsY),
+    RES is DX + DY + Cacc.
 
-
-
+costFunction(,[(X,Y)/C | T/])
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% OPERATORS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 right((X,Y): Numbers/CurrCost,Expansions,Goal, Visited, OrderedExpansions) :- 
     X < 3, 
     NX is X + 1, 
     goto(X, Y, NX, Y,Numbers, NewState),  
-    %costFunction((NX,Y):NewState,Goal,CurrCost, Cost),
+    costFunction((NX,Y):NewState, Goal, 0,Cost),
     \+member((NX,Y):NewState/Cost, Visited),
     insertOrdered((NX,Y):NewState/Cost, Expansions, OrderedExpansions).
     
@@ -32,7 +39,7 @@ left((X,Y): Numbers/CurrCost ,Expansions, Goal, Visited, OrderedExpansions) :-
     X > 1, 
     NX is X - 1, 
     goto(X, Y, NX, Y,Numbers, NewState),  
-    %costFunction((NX,Y):NewState, Goal, CurrCost, Cost),
+    costFunction((NX,Y):NewState, Goal, 0,Cost),
     \+member((NX,Y):NewState/Cost, Visited),
     insertOrdered((NX,Y):NewState/Cost, Expansions, OrderedExpansions).
 left(_,Expansions,_,_,Expansions).
@@ -41,7 +48,7 @@ up((X,Y): Numbers/CurrCost, Expansions, Goal, Visited, OrderedExpansions) :-
     Y < 3, 
     NY is Y + 1, 
     goto(X, Y, X, NY,Numbers, NewState),  
-    %costFunction((X,NY):NewState, Goal,CurrCost, Cost),
+    costFunction((X,NY):NewState, Goal, 0,Cost),
     \+member((X,NY):NewState/Cost, Visited),
     insertOrdered((X,NY):NewState/Cost, Expansions, OrderedExpansions).
 up(_,Expansions,_,_,Expansions).
@@ -50,7 +57,7 @@ down((X,Y):Numbers/CurrCost, Expansions, Goal, Visited, OrderedExpansions) :-
     Y > 1, 
     NY is Y - 1, 
     goto(X, Y, X, NY,Numbers, NewState),  
-    %costFunction((X,NY):NewState, Goal,CurrCost, Cost),
+    costFunction((X,NY):NewState, Goal, 0, Cost),
     \+member((X,NY):NewState/Cost, Visited),
     insertOrdered((X,NY):NewState/Cost, Expansions, OrderedExpansions).
 down(_,Expansions,_,_,Expansions).
