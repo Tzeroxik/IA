@@ -77,4 +77,4 @@ insertOrdered(State, [H | T], [H | R]) :-  insertOrdered(State, T, R).
 
 writeV([]) :- write('END'),nl,nl,nl,!.
 writeV([H|T]) :- write('NEW STATE'),nl, write(H), nl, writeV(T).
-%test(Path):- search().
+%test(Path):- search(). TODO
