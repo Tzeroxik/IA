@@ -1,79 +1,93 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% Searcher %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-search([Goal,_ ], Solution, Goal, Path) :- reverse([Goal|Path],Solution).
-search(Expansions, Visited, Goal , Path) :- 
-	applyOperators(Expansions, Visited, Goal,Expanded),
-    search(Expanded, Visited, Goal, Path).
+search(InitialState, Goal, Solution) :- 
+    canSolve(InitialState, Goal),
+    !,
+    solve(InitialState, Goal, Solution).
 
-applyOperators([Ehead | Etail], Visited,Goal, NewExpansions) :- 
-    right(Ehead, Etail,Goal,Visited,Eright),
-    left(Ehead, Eright,Goal, Visited ,Eleft),
-    up(Ehead, Eleft, Goal, Visited, Eup),
-    down(Ehead, Eup,Goal, Visited, NewExpansions),
-    \+equals(Etail, NewExpansions).
+solve([(PosH, Pieces, Cost, _, Moves) |_],(PosH, Pieces), Solution/Cost) :- reverse(Moves,Solution).
+solve([],_,_) :- !, fail.
+solve(AvailableStates, Goal ,Path) :- 
+	applyOperators(AvailableStates, Goal, NAvailableStates),
+    solve(NAvailableStates, Goal, Path).
 
-costFunction((X,Y):[]/ Cost, (Xpg,Ypg):[], Cacc ,NewCost) :- manDist(X, Y, Xpg, Ypg, C), NewCost is Cacc + C + Cost. 
-costFunction(CH:[_-(X-Y) | T]/ Cost, GH:[_-(Xg,Yg) | Tg], Cacc ,NewCost) :- 
-    manDist(X, Y, Xg, Yg, NCacc),
-    costFunction(CH: T /Cost, GH : Tg, NCacc, NewCost). 
+canSolve(_,_).
+
+applyOperators([EHead | STail], Goal, NewAvailableStates) :- 
+    right(EHead, STail,Goal ,SRight),
+    left(EHead, SRight,Goal ,SLeft),
+    up(EHead, SLeft, Goal, SUp),
+    down(EHead, SUp, Goal, NewAvailableStates).
+
+costFunction(X-Y,[], (Xpg-Ypg,[]), Cost, Cacc , NewCost) :-
+    manDist(X, Y, Xpg, Ypg, C), NewCost is Cacc + C + Cost. 
+costFunction(CH,[X-Y | T], (GH,[Xg-Yg | Tg]),Cost, Cacc ,NewCost) :-
+    manDist(X, Y, Xg, Yg, Res),
+    NCacc is Res + Cacc,
+    costFunction(CH, T , (GH, Tg), Cost, NCacc, NewCost).
 
 manDist(X,Y, XGOAL, YGOAL, RES) :- 
     DX is X - XGOAL,
 	DY is Y - YGOAL,
     abs(DX, AbsX),
     abs(DY, AbsY),
-    RES is DX + DY + Cacc.
+    RES is AbsX + AbsY.
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% OPERATORS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-right((X,Y): Numbers/CurrCost,Expansions,Goal, Visited, OrderedExpansions) :- 
-    X < 3, 
-    NX is X + 1, 
-    goto(X, Y, NX, Y,Numbers, NewState),  
-    costFunction((NX,Y):NewState, Goal, 0,Cost),
-    \+member((NX,Y):NewState/Cost, Visited),
-    insertOrdered((NX,Y):NewState/Cost, Expansions, OrderedExpansions).
-    
-right(_,Expansions,_,_,Expansions).
+right((CurrX-CurrY, Pieces, Cost, Visited,Moves),Expansions ,Goal , OrderedExpansions) :- 
+    CurrX < 3,
+    NX is CurrX + 1, 
+    goto(CurrX, CurrY, NX, CurrY, Pieces, NPieces),  
+    costFunction(NX-CurrY, NPieces, Goal, Cost, 0, NCost),
+    \+member((NX-CurrY,NPieces), Visited),
+    insertOrdered((NX-CurrY,NPieces,NCost,[(CurrX-CurrY,Pieces)|Visited],[right|Moves]), Expansions, OrderedExpansions).
+right(_,Expansions,_,Expansions).
 
-left((X,Y): Numbers/CurrCost ,Expansions, Goal, Visited, OrderedExpansions) :- 
-    X > 1, 
-    NX is X - 1, 
-    goto(X, Y, NX, Y,Numbers, NewState),  
-    costFunction((NX,Y):NewState, Goal, 0,Cost),
-    \+member((NX,Y):NewState/Cost, Visited),
-    insertOrdered((NX,Y):NewState/Cost, Expansions, OrderedExpansions).
-left(_,Expansions,_,_,Expansions).
+left((CurrX-CurrY, Pieces, Cost, Visited,Moves),Expansions ,Goal , OrderedExpansions) :- 
+    CurrX > 1, 
+    NX is CurrX - 1, 
+    goto(CurrX, CurrY, NX, CurrY, Pieces, NPieces),  
+    costFunction(NX-CurrY, NPieces, Goal, Cost, 0, NCost),
+    \+member((NX-CurrY,NPieces), Visited),
+    insertOrdered((NX-CurrY,NPieces,NCost,[(CurrX-CurrY,Pieces)|Visited],[left|Moves]), Expansions, OrderedExpansions).
+left(_,Expansions,_,Expansions).
 
-up((X,Y): Numbers/CurrCost, Expansions, Goal, Visited, OrderedExpansions) :- 
-    Y < 3, 
-    NY is Y + 1, 
-    goto(X, Y, X, NY,Numbers, NewState),  
-    costFunction((X,NY):NewState, Goal, 0,Cost),
-    \+member((X,NY):NewState/Cost, Visited),
-    insertOrdered((X,NY):NewState/Cost, Expansions, OrderedExpansions).
-up(_,Expansions,_,_,Expansions).
+down((CurrX-CurrY, Pieces, Cost, Visited, Moves),Expansions ,Goal , OrderedExpansions) :- 
+    CurrY < 3, 
+    NY is CurrY + 1, 
+    goto(CurrX, CurrY, CurrX, NY, Pieces, NPieces),  
+    costFunction(CurrX-NY, NPieces, Goal, Cost, 0, NCost),
+    \+member((CurrX-NY, NPieces), Visited),
+    insertOrdered((CurrX-NY,NPieces,NCost,[(CurrX-CurrY,Pieces)|Visited],[down|Moves]), Expansions, OrderedExpansions).
+down(_,Expansions,_,Expansions).
 
-down((X,Y):Numbers/CurrCost, Expansions, Goal, Visited, OrderedExpansions) :- 
-    Y > 1, 
-    NY is Y - 1, 
-    goto(X, Y, X, NY,Numbers, NewState),  
-    costFunction((X,NY):NewState, Goal, 0, Cost),
-    \+member((X,NY):NewState/Cost, Visited),
-    insertOrdered((X,NY):NewState/Cost, Expansions, OrderedExpansions).
-down(_,Expansions,_,_,Expansions).
+up((CurrX-CurrY, Pieces, Cost, Visited,Moves), Expansions, Goal, OrderedExpansions) :- 
+    CurrY > 1, 
+    NY is CurrY - 1, 
+    goto(CurrX, CurrY, CurrX, NY, Pieces, NPieces),  
+    costFunction(CurrX-NY, NPieces, Goal, Cost, 0, NCost),
+    \+member((CurrX-NY, NPieces), Visited),
+    insertOrdered((CurrX-NY,NPieces,NCost,[(CurrX-CurrY,Pieces)|Visited],[up|Moves]), Expansions, OrderedExpansions).
+up(_,Expansions,_,Expansions).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% UTILS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-goto(FromX, FromY, ToX, ToY, [P-(ToX, ToY) | T] , [P-(FromX, FromY) | T]):- !.
+
+goto(FromX, FromY, ToX, ToY, [(ToX - ToY) | T] , [(FromX - FromY) | T]):- !.
 goto(FromX, FromY, ToX, ToY,[H | T] , [H | NT]) :-  !, goto(FromX, FromY, ToX, ToY, T, NT).
 
-equals(X,X).
 
 insertOrdered(State, [], [State]):-!.
-insertOrdered(State/Cost, [H/CostH | T], [State/Cost, H/CostH | T]) :- CostH >= Cost, !.
+insertOrdered((State,Pieces,Cost,Visited), [(CState,CPieces,CCost,CVisited) | T], [(State,Pieces,Cost,Visited),(CState,CPieces,CCost,CVisited) | T]) :- CCost >= Cost, !.
 insertOrdered(State, [H | T], [H | R]) :-  insertOrdered(State, T, R).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DEBUG AND TEST %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-writeV([]) :- write('END'),nl,nl,nl,!.
+writeV([]) :- write('END'),nl,!.
 writeV([H|T]) :- write('NEW STATE'),nl, write(H), nl, writeV(T).
-%test(Path):- search(). TODO
+test:- search([(1-1,[2-1,3-1,1-2,2-2,3-2,1-3,2-3,3-3],0,[],[])],(3-3,[1-1,3-1,1-2,2-1,3-2,1-3,2-2,2-3]), Path),
+write("new search:"),nl,write(Path),nl,write("end"),nl.
+%writeV(Path),write(Cost).
+%structure of State: (X-Y, [X-Y |TPieces], Cost, [HVisited, TVisited])
+%{0,1,2},{3,4,5},{6,7,8}
+%{1,4,2},{3,7,5},{6,8,0}
+
